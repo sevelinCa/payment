@@ -16,6 +16,7 @@ router.get("/cancel", (req, res) => {
 router.post("/checkout", async (req, res) => {
   try {
     const { cartData } = req.body;
+    let vendorIds = [];
     let line_items = [];
     cartData.map((item) => {
         line_items.push({
@@ -23,21 +24,24 @@ router.post("/checkout", async (req, res) => {
                 currency: "usd",
                 product_data: {
                     name: item.name,
-                    images: [item.image]
+                    images: [item.image],
+                    vendorId: item.vendorId
                 },
                 unit_amount: item.price
             },
             quantity: item.quantity,
-            metadata: {
-              vendorId: item.vendorId
-            }
         });
+        vendorIds.push(item.vendorId);
     });
     const session = await stripe.checkout.sessions.create({
         line_items,
         mode: 'payment',
         success_url: 'https://payment-p5w9.onrender.com/success',
         cancel_url: 'https://payment-p5w9.onrender.com/cancel',
+        metadata: {
+          vendorIds: JSON.stringify(vendorIds)
+      }
+
     });
 
     res.json({ sessionId: session.id,url:session.url });
@@ -67,8 +71,10 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (reques
 
       try {
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-        lineItems.data.forEach(item => {
-          console.log('Vendor ID: ', item.metadata.vendorId);
+        const vendorIds = JSON.parse(session.metadata.vendorIds);
+        
+        lineItems.data.forEach((item, index) => {
+          console.log(`Vendor ID: ${vendorIds[index]}`);
         });
       } catch (err) {
         console.error('Error retrieving line items:', err);
