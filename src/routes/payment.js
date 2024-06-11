@@ -25,7 +25,7 @@ router.post("/checkout", async (req, res) => {
                 product_data: {
                     name: item.name,
                     images: [item.image],
-                    vendorId: item.vendorId
+
                 },
                 unit_amount: item.price
             },
