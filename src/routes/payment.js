@@ -49,7 +49,7 @@ router.post("/checkout", async (req, res) => {
 
 router.post('/webhook', bodyParser.raw({ type: 'application/json' }), (request, response) => {
   const sig = request.headers['stripe-signature'];
-  const webhookSecret = "we_1PQQIVCVDF5HLoSR3iUhs9Wj";
+  const webhookSecret = "whsec_KUYyC7TzJgrNT3nAAk1SBFBTp1ALt1AX";
 
   let event;
 
@@ -67,15 +67,19 @@ router.post('/webhook', bodyParser.raw({ type: 'application/json' }), (request, 
       // Log the session data to console
       console.log('Session completed: ', session);
       break;
-    case 'payment_intent.succeeded':
-      const paymentIntent = event.data.object;
+    case 'checkout.session.async_payment_succeeded':
+      const checkoutsessionasync_payment_succeeded = event.data.object;
       // Log the payment intent data to console
-      console.log('Payment Intent succeeded: ', paymentIntent);
+      console.log('checkout session async_payment_succeeded: ', checkoutsessionasync_payment_succeeded);
       break;
-    case 'payment_method.attached':
-      const paymentMethod = event.data.object;
+    case 'checkout.session.expired':
+      const checkoutsessionexpired = event.data.object;
       // Log the payment method data to console
-      console.log('Payment Method attached: ', paymentMethod);
+      console.log('checkout session expired: ', checkoutsessionexpired);
+      break;
+      case 'checkout.session.async_payment_failed':
+        const checkoutSessionAsyncPaymentFailed = event.data.object;
+      console.log('checkout session expired: ', checkoutSessionAsyncPaymentFailed);
       break;
     // ... handle other event types
     default:
