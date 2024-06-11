@@ -40,7 +40,7 @@ router.post("/checkout", async (req, res) => {
         cancel_url: 'https://payment-p5w9.onrender.com/cancel',
     });
 
-    res.json({ sessionId: session.id });
+    res.json({ sessionId: session.id,url:session.url });
     
   } catch (error) {
     res.json({ error: error.message });
