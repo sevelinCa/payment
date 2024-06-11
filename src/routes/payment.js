@@ -40,7 +40,7 @@ router.post("/checkout", async (req, res) => {
         cancel_url: 'https://payment-p5w9.onrender.com/cancel',
     });
 
-    res.json({ sessionId: session.id, url: session.url });
+    res.json({ sessionId: session.id });
     
   } catch (error) {
     res.json({ error: error.message });
@@ -48,13 +48,28 @@ router.post("/checkout", async (req, res) => {
 });
 
 router.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
-  const sig = request.headers['stripe-signature'];
-  const webhookSecret = "whsec_KUYyC7TzJgrNT3nAAk1SBFBTp1ALt1AX";
+  const event = request.body;
 
-  let event = req.body
-  console.log(event)
+  switch (event.type) {
+    case 'checkout.session.completed':
+      const session = event.data.object;
+      console.log('Session completed: ', session);
+      break;
+    case 'payment_intent.succeeded':
+      const paymentIntent = event.data.object;
+      console.log('Payment Intent succeeded: ', paymentIntent);
+      break;
+    case 'payment_method.attached':
+      const paymentMethod = event.data.object;
 
-  
+      console.log('Payment Method attached: ', paymentMethod);
+      break;
+
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  response.json({ received: true, webhookId: event.id });
 });
 
 module.exports = router;
