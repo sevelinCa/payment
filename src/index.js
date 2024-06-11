@@ -2,6 +2,7 @@ const express = require('express')
 const checkoutRoute = require('./routes/payment')
 const app = express()
 
+
 app.use(express.json())
 
 app.use("/", checkoutRoute)
