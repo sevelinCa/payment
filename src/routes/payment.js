@@ -47,21 +47,41 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
-router.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
-  const event = request.body;
+router.post('/webhook', express.raw({ type: 'application/json' }), async (request, response) => {
+  const sig = request.headers['stripe-signature'];
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(request.body, sig, webhookSecret);
+  } catch (err) {
+    console.log(`⚠️  Webhook signature verification failed.`, err.message);
+    return response.status(400).send(`Webhook Error: ${err.message}`);
+  }
 
   switch (event.type) {
     case 'checkout.session.completed':
       const session = event.data.object;
       console.log('Session completed: ', session);
+
+      try {
+        const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
+        lineItems.data.forEach(item => {
+          console.log('Vendor ID: ', item.metadata.vendorId);
+        });
+      } catch (err) {
+        console.error('Error retrieving line items:', err);
+      }
       break;
+      
     case 'payment_intent.succeeded':
       const paymentIntent = event.data.object;
       console.log('Payment Intent succeeded: ', paymentIntent);
       break;
+      
     case 'payment_method.attached':
       const paymentMethod = event.data.object;
-
       console.log('Payment Method attached: ', paymentMethod);
       break;
 
@@ -69,7 +89,8 @@ router.post('/webhook', express.raw({ type: 'application/json' }), (request, res
       console.log(`Unhandled event type ${event.type}`);
   }
 
-  response.json({ received: true, webhookId: event.id });
+  response.json({ received: true });
 });
+
 
 module.exports = router;
