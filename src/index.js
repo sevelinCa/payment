@@ -1,7 +1,9 @@
 const express = require('express')
 const checkoutRoute = require('./routes/payment')
 const app = express()
+const bodyParser = require('body-parser');
 
+app.use(bodyParser.json());
 app.use(express.json())
 
 app.use("/", checkoutRoute)
