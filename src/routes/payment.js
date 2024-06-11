@@ -47,7 +47,7 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
-router.post('/webhook', bodyParser.raw({ type: 'application/json' }), (request, response) => {
+router.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
   const sig = request.headers['stripe-signature'];
   const webhookSecret = "whsec_KUYyC7TzJgrNT3nAAk1SBFBTp1ALt1AX";
 
