@@ -49,7 +49,7 @@ router.post("/checkout", async (req, res) => {
 
 router.post('/webhook', bodyParser.raw({ type: 'application/json' }), (request, response) => {
   const sig = request.headers['stripe-signature'];
-  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  const webhookSecret = "we_1PQQIVCVDF5HLoSR3iUhs9Wj";
 
   let event;
 
