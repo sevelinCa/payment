@@ -3,7 +3,6 @@ const checkoutRoute = require('./routes/payment');
 const app = express();
 const bodyParser = require("body-parser");
 
-// Use express.json() for all routes except /webhook
 app.use((req, res, next) => {
   if (req.originalUrl === '/webhook') {
     next();
