@@ -6,6 +6,9 @@ const bodyParser = require('body-parser');
 
 const router = express.Router();
 
+router.use(bodyParser.json());
+router.use(express.json())
+
 router.get("/success", (req, res) => {
     res.send("Successfully");
 });
