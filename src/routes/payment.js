@@ -2,6 +2,7 @@ const express = require('express');
 const dotenv = require('dotenv');
 dotenv.config();
 const stripe = require('stripe')(process.env.STRIPE_SECRET);
+const bodyParser = require('body-parser');
 
 const router = express.Router();
 
@@ -48,6 +49,7 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
+// Use express.raw() for the /webhook route to handle the raw body
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = "whsec_KUYyC7TzJgrNT3nAAk1SBFBTp1ALt1AX";
@@ -68,11 +70,23 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
       try {
         const lineItems = await stripe.checkout.sessions.listLineItems(session.id);
-        const vendorIds = JSON.parse(session.metadata.vendorIds);
+                const vendorIds = JSON.parse(session.metadata.vendorIds);
 
-        lineItems.data.forEach((item, index) => {
-          console.log(`Vendor ID: ${vendorIds[index]}`);
-        });
+                const payouts = await Promise.all(lineItems.data.map(async (item, index) => {
+                    const vendorId = vendorIds[index];
+                    const vendor = await getVendorById(vendorId); // Function to retrieve vendor from database
+                    const amount = item.amount_subtotal; // Amount to transfer to vendor
+                    const stripeAccountId = vendor.stripeAccountId;
+
+                    // Transfer funds to vendor's Stripe account
+                    return stripe.transfers.create({
+                        amount: amount,
+                        currency: 'usd',
+                        destination: stripeAccountId,
+                    });
+                }));
+
+                console.log('Payouts: ', payouts);
       } catch (err) {
         console.error('Error retrieving line items:', err);
       }
@@ -94,5 +108,16 @@ router.post('/webhook', express.raw({ type: 'application/json' }), async (req, r
 
   res.json({ received: true });
 });
+
+async function getVendorById(vendorId) {
+  // Replace this with actual database retrieval logic
+  const vendorTable = {
+      "vendor1": { stripeAccountId: "acct_1PQErBGpB2eokSXX" },
+      "vendor2": { stripeAccountId: "acct_1Hh3gF2eZvKYlo2D" },
+      // Add more vendors as needed
+  };
+
+  return vendorTable[vendorId];
+}
 
 module.exports = router;
