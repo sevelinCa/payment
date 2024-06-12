@@ -48,7 +48,6 @@ router.post("/checkout", async (req, res) => {
   }
 });
 
-// Use express.raw() for the /webhook route to handle the raw body
 router.post('/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
   const sig = req.headers['stripe-signature'];
   const webhookSecret = "whsec_KUYyC7TzJgrNT3nAAk1SBFBTp1ALt1AX";
